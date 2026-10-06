@@ -1,0 +1,42 @@
+ARG BASE_IMAGE
+ARG BASE_IMAGE=ubuntu:24.04
+FROM ${BASE_IMAGE}
+
+COPY certs/ /tmp/lab-certs/
+
+RUN set -eu; \
+    . /etc/os-release; \
+    case "${ID}" in \
+      ubuntu|debian) \
+        apt-get -o Acquire::https::Verify-Peer=false -o Acquire::https::Verify-Host=false update; \
+        DEBIAN_FRONTEND=noninteractive apt-get \
+          -o Acquire::https::Verify-Peer=false \
+          -o Acquire::https::Verify-Host=false \
+          install -y --no-install-recommends ca-certificates; \
+        if [ -r /tmp/lab-certs/IPR-CA.crt ]; then \
+          install -D -m 0644 /tmp/lab-certs/IPR-CA.crt /usr/local/share/ca-certificates/IPR-CA.crt; \
+          update-ca-certificates; \
+        fi; \
+        apt-get update; \
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends sudo; \
+        rm -rf /var/lib/apt/lists/* ;; \
+      rocky|ol) \
+        dnf --setopt=sslverify=0 install -y ca-certificates; \
+        if [ -r /tmp/lab-certs/IPR-CA.crt ]; then \
+          install -D -m 0644 /tmp/lab-certs/IPR-CA.crt /etc/pki/ca-trust/source/anchors/IPR-CA.crt; \
+          update-ca-trust extract; \
+        fi; \
+        dnf install -y sudo; \
+        dnf clean all ;; \
+      *) echo "Unsupported base image: ${ID}" >&2; exit 1 ;; \
+    esac; \
+    useradd --create-home --shell /bin/bash tester; \
+    printf '%s\n' 'tester ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/tester; \
+    chmod 0440 /etc/sudoers.d/tester; \
+    visudo -cf /etc/sudoers.d/tester; \
+    rm -rf /tmp/lab-certs
+
+COPY --chmod=0755 container-entrypoint.sh /usr/local/sbin/lab-container-entrypoint
+
+ENTRYPOINT ["/usr/local/sbin/lab-container-entrypoint"]
+CMD ["sleep", "infinity"]

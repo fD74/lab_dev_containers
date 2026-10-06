@@ -1,0 +1,13 @@
+ARG BASE_IMAGE=ipr-ansible-lab:base-ubuntu24-latest
+FROM ${BASE_IMAGE}
+
+USER root
+# The build script stages a filtered projects/ directory beside this Dockerfile.
+COPY projects/ /home/sc-ansible/projects/
+
+RUN sudo -u tester sudo bash /home/sc-ansible/projects/ansible_mgmt/tools/mk-ansible-requirements.sh
+RUN /home/sc-ansible/projects/playbook ansible_mgmt/playbooks/ansible_prerequisites.yaml
+RUN /home/sc-ansible/projects/playbook ansible_mgmt/playbooks/ansible_runtime.yaml \
+    -e ansible_runtime_activate=true
+RUN /home/sc-ansible/projects/playbook ansible_mgmt/playbooks/ansible_collections.yaml
+RUN touch /home/sc-ansible/projects/.lab-projects-snapshot

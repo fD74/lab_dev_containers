@@ -17,7 +17,7 @@ stav; image se automaticky nestahují ani nenasazují na cílové systémy.
   manifesty se do tohoto image nepřidávají.
 
 Ansible dev build přebírá pracovní soubory z `/home/sc-ansible/projects` včetně
-necommitnutých změn. Zdrojový `projects/` je vedle `lab/` v workspace; build
+necommitnutých změn. Zdrojový `projects/` je vedle `lab_dev_containers/` v workspace; build
 skript z něj nejprve sestaví filtrovaný dočasný context. Proto `COPY projects/`
 v Dockerfile odkazuje na adresář uvnitř tohoto contextu, nikoli na cestu vůči
 Dockerfile. Z build contextu se vynechává `.git`, lokální `.ansible`,
@@ -30,15 +30,15 @@ dané distribuce.
 
 ```bash
 cd /home/sc-ansible
-./lab/build-base.sh
-./lab/build-ansible-dev.sh
+./lab_dev_containers/build-base.sh
+./lab_dev_containers/build-ansible-dev.sh
 ```
 
 Oba příkazy podporují výběr `ubuntu24` nebo `rocky9`, například:
 
 ```bash
-./lab/build-base.sh rocky9
-./lab/build-ansible-dev.sh rocky9
+./lab_dev_containers/build-base.sh rocky9
+./lab_dev_containers/build-ansible-dev.sh rocky9
 ```
 
 Ansible dev build automaticky sestaví odpovídající lab base, pokud jeho image
@@ -50,10 +50,10 @@ daemon, `rsync` a síťový přístup k OS repozitářům, SOPS release a Ansibl
 Pro každý image spusť vlastní persistentní kontejner:
 
 ```bash
-./lab/run-target.sh base ubuntu24
-./lab/run-target.sh base rocky9
-./lab/run-target.sh ansible-dev ubuntu24
-./lab/run-target.sh ansible-dev rocky9
+./lab_dev_containers/run-target.sh base ubuntu24
+./lab_dev_containers/run-target.sh base rocky9
+./lab_dev_containers/run-target.sh ansible-dev ubuntu24
+./lab_dev_containers/run-target.sh ansible-dev rocky9
 ```
 
 Každý kontejner připojí `/home/sc-ansible/projects` hostitele pouze pro čtení
@@ -81,7 +81,7 @@ sudo bash ansible_mgmt/tools/mk-ansible-requirements.sh
 
 Ansible dev kontejner lze otevřít stejným způsobem. Po novém sestavení image
 vytvoř kontejner s novým jménem instance, například
-`./lab/run-target.sh ansible-dev ubuntu24 20261002`; existující kontejner
+`./lab_dev_containers/run-target.sh ansible-dev ubuntu24 20261002`; existující kontejner
 zachovává svůj původní image i změny ve snapshotu. Skripty existující kontejnery
 automaticky nemažou ani nepřepisují.
 
